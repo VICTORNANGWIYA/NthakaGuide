@@ -1034,4 +1034,38 @@ export default function AdminDashboard() {
         </motion.div>
       </main>
 
-      
+      {/* ── Dialogs ───────────────────────────────────────────────────────── */}
+      {resetTarget && token && (
+        <ResetPasswordDialog
+          userId={resetTarget.id} userEmail={resetTarget.email} token={token}
+          open={!!resetTarget} onClose={() => setResetTarget(null)}
+          onDone={() => usersApi.reload()}
+        />
+      )}
+      {deleteTarget && (
+        <ConfirmDialog
+          open={!!deleteTarget}
+          title="Delete User"
+          description={`Permanently delete ${deleteTarget.email} and all their data? This cannot be undone.`}
+          confirmLabel="Delete" variant="destructive"
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={() => {
+            userAction(`/admin/users/${deleteTarget.id}`, "DELETE", undefined, `${deleteTarget.email} deleted.`);
+            setDeleteTarget(null);
+          }}
+        />
+      )}
+      {confirmAction && (
+        <ConfirmDialog
+          open={!!confirmAction}
+          title={confirmAction.title}
+          description={confirmAction.description}
+          confirmLabel={confirmAction.label}
+          variant={confirmAction.variant}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={() => { confirmAction.onConfirm(); setConfirmAction(null); }}
+        />
+      )}
+    </div>
+  );
+}
