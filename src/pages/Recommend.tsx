@@ -12,9 +12,10 @@ import {
   type Recommendation,
   type CropRecommendation,
   type FertilizerPlan,
-  type YieldPrediction,
-  type PestDiseaseRisk,
+  //type YieldPrediction,
+ // type PestDiseaseRisk,
 } from "@/lib/recommendations";
+import { FlaskConical, Eye } from "lucide-react";
 import { getDistrictByName, MALAWI_DISTRICTS } from "@/lib/malawi-districts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label }   from "@/components/ui/label";
@@ -41,8 +42,8 @@ export default function Recommend() {
 
     const topCrop:   CropRecommendation | undefined = rec.crops?.[0];
     const fertPlan:  FertilizerPlan                 = topCrop?.fertilizerPlan  ?? {};
-    const yieldPred: Partial<YieldPrediction>       = topCrop?.yieldPrediction ?? {};
-    const pestRisk:  Partial<PestDiseaseRisk>       = topCrop?.pestDiseaseRisk ?? {};
+    //const yieldPred: Partial<YieldPrediction>       = topCrop?.yieldPrediction ?? {};
+    //const pestRisk:  Partial<PestDiseaseRisk>       = topCrop?.pestDiseaseRisk ?? {};
 
     try {
       const res = await fetch("http://localhost:5000/analysis/", {
@@ -73,10 +74,10 @@ export default function Recommend() {
           crop_confidence:  topCrop?.confidence           ?? null,
           crop_season:      topCrop?.season               ?? null,
           fertilizer_type:  fertPlan?.basal               ?? null,
-          yield_predicted:  yieldPred?.predicted_tha      ?? null,
-          yield_potential:  yieldPred?.potential_tha      ?? null,
-          yield_category:   yieldPred?.yield_category     ?? null,
-          pest_risk_level:  pestRisk?.summary?.level      ?? null,
+          //yield_predicted:  yieldPred?.predicted_tha      ?? null,
+          //yield_potential:  yieldPred?.potential_tha      ?? null,
+          //yield_category:   yieldPred?.yield_category     ?? null,
+          //pest_risk_level:  pestRisk?.summary?.level      ?? null,
 
           land_use:      soilInput.landUse      ?? "food",
           previous_crop: soilInput.previousCrop ?? "",
@@ -209,12 +210,23 @@ export default function Recommend() {
 
         ) : (
           <Tabs defaultValue="lab" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 bg-muted">
-              <TabsTrigger value="lab"   className="font-semibold">🧪 Lab Data</TabsTrigger>
-              <TabsTrigger value="field" className="font-semibold">👁️ Field</TabsTrigger>
-              <TabsTrigger value="combo" className="font-semibold">🔀 Mixed</TabsTrigger>
-            </TabsList>
+            <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-xl">
+  <TabsTrigger
+    value="lab"
+    className="flex items-center justify-center gap-2 rounded-lg font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+  >
+    <FlaskConical className="h-4 w-4" />
+    Lab Data
+  </TabsTrigger>
 
+  <TabsTrigger
+    value="field"
+    className="flex items-center justify-center gap-2 rounded-lg font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+  >
+    <Eye className="h-4 w-4" />
+    Field Data
+  </TabsTrigger>
+</TabsList>
           
             <TabsContent value="lab">
               <SoilInputForm onSubmit={handleLabSubmit} isLoading={loading} />

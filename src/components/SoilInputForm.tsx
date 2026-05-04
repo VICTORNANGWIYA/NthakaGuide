@@ -20,18 +20,73 @@ interface Props {
 }
 
 const LAND_USE_OPTIONS = [
-  { value: "food",      label: "🌽 Food Crops",    description: "Maize, rice, cassava, beans" },
-  { value: "cash",      label: "💰 Cash Crops",    description: "Tobacco, cotton, coffee, tea" },
-  { value: "vegetable", label: "🥬 Vegetables",    description: "Tomatoes, cabbage, onion" },
-  { value: "fruit",     label: "🍌 Fruits",        description: "Banana, mango, avocado" },
-  { value: "mixed",     label: "🔀 Mixed Farming", description: "Combination of food crops" },
+  { value: "food",      label: " Food Crops",    description: "Maize, rice, cassava, beans" },
+  { value: "cash",      label: " Cash Crops",    description: "Tobacco, cotton, coffee, tea" },
+  { value: "vegetable", label: " Vegetables",    description: "Tomatoes, cabbage, onion" },
+  { value: "fruit",     label: " Fruits",        description: "Banana, mango, avocado" },
+  { value: "mixed",     label: "Mixed Farming", description: "Combination of food crops" },
 ];
 
 const PREVIOUS_CROPS = [
-  "None / First time", "Maize", "Beans", "Groundnuts", "Soybean",
-  "Tobacco", "Cotton", "Rice", "Cassava", "Sweet Potato",
-  "Pigeon Peas", "Sorghum", "Millet", "Sunflower", "Banana",
-  "Tomato", "Cabbage",
+  // ── Default ──────────────────────────────────────────────
+  "None / First time",
+
+  // ── Cereals ──────────────────────────────────────────────
+  "Maize",
+  "Rice",
+  "Sorghum",
+  "Millet",
+  "Wheat",
+
+  // ── Legumes ──────────────────────────────────────────────
+  "Beans",
+  "Black Gram",
+  "Chickpea",
+  "Cowpea",
+  "Groundnuts",
+  "Kidney Beans",
+  "Lentil",
+  "Mung Bean",
+  "Peas",
+  "Pigeon Peas",
+  "Soybean",
+
+  // ── Root & Tuber ─────────────────────────────────────────
+  "Cassava",
+  "Potato",
+  "Sweet Potato",
+
+  // ── Cash Crops ───────────────────────────────────────────
+  "Coffee",
+  "Cotton",
+  "Sugarcane",
+  "Tea",
+  "Tobacco",
+
+  // ── Oilseeds ─────────────────────────────────────────────
+  "Sesame",
+  "Sunflower",
+
+  // ── Vegetables ───────────────────────────────────────────
+  "Bell Pepper",
+  "Cabbage",
+  "Chilli",
+  "Cucumber",
+  "Eggplant",
+  "Okra",
+  "Onion",
+  "Pumpkin",
+  "Tomato",
+
+  // ── Fruits ───────────────────────────────────────────────
+  "Banana",
+  "Coconut",
+  "Guava",
+  "Mango",
+  "Muskmelon",
+  "Orange",
+  "Papaya",
+  "Watermelon",
 ];
 
 export default function SoilInputForm({ onSubmit, isLoading }: Props) {
@@ -87,7 +142,7 @@ export default function SoilInputForm({ onSubmit, isLoading }: Props) {
                 </div>
                 {MALAWI_DISTRICTS.filter(d => d.region === region).map(d => (
                   <SelectItem key={d.name} value={d.name}>
-                    {d.name} — {d.avgRainfallMm}mm avg
+                    {d.name}
                   </SelectItem>
                 ))}
               </div>

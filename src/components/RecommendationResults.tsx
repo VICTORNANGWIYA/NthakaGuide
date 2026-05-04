@@ -1,14 +1,14 @@
-import { motion } from "framer-motion";
+import { motion }                                  from "framer-motion";
 import { Button }                                  from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge }                                   from "@/components/ui/badge";
 import { Progress }                                from "@/components/ui/progress";
-import type { Recommendation, SoilInput }          from "@/lib/recommendations";
+import type { Recommendation, SoilInput, FertilizerPlanItem } from "@/lib/recommendations";
 import { generatePDFReport }                       from "@/lib/pdf-report";
 import {
   Download, CloudRain, Sprout, FlaskConical, FileText,
-  ArrowLeft, AlertTriangle, CheckCircle, Cpu,
-  TrendingUp, Bug, RotateCcw,
+  ArrowLeft, AlertTriangle, CheckCircle, Cpu, RotateCcw,
+  Leaf, ShieldAlert,
 } from "lucide-react";
 
 interface Props {
@@ -33,6 +33,143 @@ export default function RecommendationResults({ result, input, onBack }: Props) 
   const mlCrop       = mlPrediction?.topCrop  ?? null;
   const mlConf       = mlPrediction?.topConf  ?? null;
   const mlAlgorithm  = mlPrediction?.algorithm ?? "Random Forest";
+
+  // ── Fertilizer plan renderer ─────────────────────────────────────────────
+  const renderFertilizerPlan = (plan: import("@/lib/recommendations").FertilizerPlan, cropName: string) => {
+    const hasItems    = (plan.items ?? []).length > 0;
+    const hasLegacy   = !!(plan.basal || plan.topdress);
+    const hasWarnings = (plan.warnings ?? []).length > 0;
+
+    if (!hasItems && !hasLegacy) return null;
+
+    return (
+      <div className="rounded-md border border-border p-3 space-y-3">
+
+        {/* Header */}
+        <p className="text-xs font-semibold text-foreground flex items-center gap-1">
+          <FlaskConical className="h-3.5 w-3.5 text-primary" />
+          Fertilizer Plan for {cropName}
+          {plan.confidence && (
+            <span className={`ml-auto text-[10px] font-normal px-2 py-0.5 rounded-full ${
+              plan.confidence.score >= 85
+                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                : plan.confidence.score >= 70
+                ? "bg-primary/10 text-primary"
+                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+            }`}>
+              {plan.confidence.label}
+            </span>
+          )}
+        </p>
+
+        {/* Rich plan items (new backend shape) */}
+        {hasItems && (
+          <div className="space-y-2">
+            {plan.items!.map((item: FertilizerPlanItem, j: number) => (
+              <div
+                key={j}
+                className="text-xs border-t border-border pt-2 first:border-0 first:pt-0 space-y-1"
+              >
+                {/* Timing badge + rate */}
+                <div className="flex items-start justify-between gap-2 flex-wrap">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium text-[10px]">
+                    {item.timing}
+                  </span>
+                  <span className="text-primary font-semibold text-[11px] tabular-nums">
+                    {item.applicationRate}
+                  </span>
+                </div>
+
+                {/* Action / product name */}
+                <p className="font-medium text-foreground">{item.type}</p>
+
+                {/* Notes */}
+                {item.notes && (
+                  <p className="text-muted-foreground leading-relaxed">{item.notes}</p>
+                )}
+
+                {/* Alternative */}
+                {item.alternative && (
+                  <p className="text-muted-foreground italic">
+                    Alternative: {item.alternative}
+                  </p>
+                )}
+
+                {/* Confidence badge */}
+                {item.confidence && (
+                  <span className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                    {item.confidence}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Legacy flat fields fallback */}
+        {!hasItems && hasLegacy && (
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {plan.basal && (
+              <div>
+                <span className="text-muted-foreground">Basal:</span>{" "}
+                <strong className="text-foreground">{plan.basal}</strong>
+                {plan.basal_rate && (
+                  <span className="text-muted-foreground"> @ {plan.basal_rate}</span>
+                )}
+              </div>
+            )}
+            {plan.topdress && (
+              <div>
+                <span className="text-muted-foreground">Top-dress:</span>{" "}
+                <strong className="text-foreground">{plan.topdress}</strong>
+                {plan.topdress_rate && (
+                  <span className="text-muted-foreground"> @ {plan.topdress_rate}</span>
+                )}
+              </div>
+            )}
+            {plan.topdress_timing && (
+              <div className="col-span-2">
+                <span className="text-muted-foreground">Timing:</span>{" "}
+                <span className="text-foreground">{plan.topdress_timing}</span>
+              </div>
+            )}
+            {plan.notes && (
+              <p className="col-span-2 text-muted-foreground">{plan.notes}</p>
+            )}
+          </div>
+        )}
+
+        {/* Organic advice */}
+        {plan.organicAdvice && (
+          <div className="flex gap-2 items-start border-t border-border pt-2">
+            <Leaf className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+            <p className="text-xs text-green-800 dark:text-green-300">
+              {plan.organicAdvice}
+            </p>
+          </div>
+        )}
+
+        {/* Warnings */}
+        {hasWarnings && (
+          <div className="border-t border-border pt-2 space-y-1">
+            {plan.warnings!.map((w, k) => (
+              <div key={k} className="flex gap-1.5 items-start">
+                <ShieldAlert className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-yellow-800 dark:text-yellow-300">{w}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Confidence message */}
+        {plan.confidence?.message && (
+          <p className="text-[10px] text-muted-foreground/70 border-t border-border pt-2 leading-relaxed">
+            {plan.confidence.message}
+          </p>
+        )}
+      </div>
+    );
+  };
 
   return (
     <motion.div
@@ -156,6 +293,8 @@ export default function RecommendationResults({ result, input, onBack }: Props) 
                     ? "bg-destructive/5 text-destructive"
                     : alert.type === "warning"
                     ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
+                    : alert.type === "ok"
+                    ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300"
                     : "bg-primary/5 text-primary"
                 }`}
               >
@@ -192,14 +331,11 @@ export default function RecommendationResults({ result, input, onBack }: Props) 
 
         <div className="space-y-4">
           {crops.map((crop, i) => {
-            const hasFert  = crop.fertilizerPlan && Object.keys(crop.fertilizerPlan).length > 0;
-            const hasYield = !!crop.yieldPrediction;
-            const hasPests = (crop.pestDiseaseRisk?.risks?.length ?? 0) > 0;
-            const riskLevel = crop.pestDiseaseRisk?.summary?.level ?? "No Data";
-            const riskColor =
-              riskLevel === "High Risk"   ? "text-destructive"
-              : riskLevel === "Medium Risk" ? "text-yellow-600"
-              : "text-muted-foreground";
+            const hasFert = !!(
+              (crop.fertilizerPlan?.items ?? []).length > 0 ||
+              crop.fertilizerPlan?.basal ||
+              crop.fertilizerPlan?.topdress
+            );
 
             return (
               <motion.div
@@ -236,102 +372,8 @@ export default function RecommendationResults({ result, input, onBack }: Props) 
                       </span>
                     </div>
 
-                    {/* Yield Prediction */}
-                    {hasYield && (
-                      <div className="rounded-md bg-muted/50 p-3 space-y-1">
-                        <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-                          <TrendingUp className="h-3.5 w-3.5 text-primary" /> Yield Prediction
-                        </p>
-                        <div className="flex gap-4 text-xs text-muted-foreground flex-wrap">
-                          <span>
-                            Predicted:{" "}
-                            <strong className="text-foreground">
-                              {crop.yieldPrediction.predicted_tha} {crop.yieldPrediction.unit}
-                            </strong>
-                          </span>
-                          <span>
-                            Potential:{" "}
-                            <strong className="text-foreground">
-                              {crop.yieldPrediction.potential_tha} {crop.yieldPrediction.unit}
-                            </strong>
-                          </span>
-                          <Badge variant="secondary" className="text-xs">
-                            {crop.yieldPrediction.yield_category}
-                          </Badge>
-                        </div>
-                        {(crop.yieldPrediction.limiting_factors ?? []).length > 0 && (
-                          <p className="text-xs text-muted-foreground">
-                            ⚠ {crop.yieldPrediction.limiting_factors.join(" · ")}
-                          </p>
-                        )}
-                        {(crop.yieldPrediction.improvement_tips ?? []).length > 0 && (
-                          <p className="text-xs text-primary">
-                            ✓ {crop.yieldPrediction.improvement_tips[0]}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
                     {/* Fertilizer Plan */}
-                    {hasFert && (
-                      <div className="rounded-md border border-border p-3 space-y-2">
-                        <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-                          <FlaskConical className="h-3.5 w-3.5 text-primary" />
-                          Fertilizer Plan for {crop.crop}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {crop.fertilizerPlan.basal && (
-                            <div>
-                              <span className="text-muted-foreground">Basal:</span>{" "}
-                              <strong className="text-foreground">{crop.fertilizerPlan.basal}</strong>
-                              {crop.fertilizerPlan.basal_rate && (
-                                <span className="text-muted-foreground"> @ {crop.fertilizerPlan.basal_rate}</span>
-                              )}
-                            </div>
-                          )}
-                          {crop.fertilizerPlan.topdress && (
-                            <div>
-                              <span className="text-muted-foreground">Top-dress:</span>{" "}
-                              <strong className="text-foreground">{crop.fertilizerPlan.topdress}</strong>
-                              {crop.fertilizerPlan.topdress_rate && (
-                                <span className="text-muted-foreground"> @ {crop.fertilizerPlan.topdress_rate}</span>
-                              )}
-                            </div>
-                          )}
-                          {crop.fertilizerPlan.topdress_timing && (
-                            <div className="col-span-2">
-                              <span className="text-muted-foreground">Timing:</span>{" "}
-                              <span className="text-foreground">{crop.fertilizerPlan.topdress_timing}</span>
-                            </div>
-                          )}
-                        </div>
-                        {crop.fertilizerPlan.notes && (
-                          <p className="text-xs text-muted-foreground border-t border-border pt-2">
-                            {crop.fertilizerPlan.notes}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Pest & Disease Risk */}
-                    {hasPests && (
-                      <div className="rounded-md border border-border p-3 space-y-2">
-                        <p className={`text-xs font-semibold flex items-center gap-1 ${riskColor}`}>
-                          <Bug className="h-3.5 w-3.5" />
-                          Pest & Disease Risk — {riskLevel}
-                        </p>
-                        {crop.pestDiseaseRisk.risks.map((risk, j) => (
-                          <div key={j} className="text-xs space-y-0.5 border-t border-border pt-2 first:border-0 first:pt-0">
-                            <p className="font-semibold text-foreground">
-                              {risk.name}
-                              <Badge variant="outline" className="ml-2 text-xs">{risk.risk_level}</Badge>
-                            </p>
-                            <p className="text-muted-foreground">{risk.symptoms}</p>
-                            <p className="text-foreground">{risk.action}</p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    {hasFert && renderFertilizerPlan(crop.fertilizerPlan, crop.crop)}
 
                     {/* Rotation Advice */}
                     {crop.rotationAdvice && (
