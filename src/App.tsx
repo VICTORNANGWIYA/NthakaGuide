@@ -18,6 +18,7 @@ import AdminProfile from "./pages/Admin/AdminProfile";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import FirstTimeGuide from "./pages/FirstTimeGuide";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <BrowserRouter>
+        <LanguageProvider>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -48,6 +50,7 @@ const App = () => (
             individual pages. Remove any <Chatbot /> you have in Index.tsx,
             Recommend.tsx, or any other page.
           */}
+          </LanguageProvider>
           <Chatbot />
           <FirstTimeGuide />
         </BrowserRouter>
