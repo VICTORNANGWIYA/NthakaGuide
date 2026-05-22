@@ -1,5 +1,3 @@
-// src/pages/admin/hooks.ts
-// Shared hooks and API helpers used across all admin tab panels.
 
 import { useState, useEffect, useCallback } from "react";
 
