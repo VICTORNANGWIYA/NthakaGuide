@@ -1,19 +1,4 @@
-/**
- * src/pages/admin/AdminDashboard.tsx
- *
- * Slim shell — owns only:
- *   • route guard
- *   • all useAdminFetch calls
- *   • shared filter state
- *   • dialog open/close state
- *   • KPI assembly
- *   • top bar
- *   • tab list
- *
- * Every tab panel lives in ./tabs/*.tsx
- * Every shared primitive lives in ./ui.tsx
- * Every hook/helper lives in ./hooks.ts
- */
+
 
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
