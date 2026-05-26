@@ -19,20 +19,20 @@ export interface RotationAdvice {
   recommendation: string;
 }
 
-// ── Rich fertilizer plan item (from algorithms.py) ────────────────────────
+
 export interface FertilizerPlanItem {
-  type:            string;         // product name or action description
-  applicationRate: string;         // e.g. "NPK 23:21:0 — 200 kg/ha"
-  timing:          string;         // e.g. "At planting" or "Top-dressing 1 — 4–6 weeks"
-  notes?:          string;         // agronomic rationale
-  alternative?:    string | null;  // alternative product if available
-  confidence?:     string | null;  // e.g. "High"
-  products?:       string[];       // raw product strings
+  type:            string;        
+  applicationRate: string;         
+  timing:          string;         
+  notes?:          string;       
+  alternative?:    string | null; 
+  confidence?:     string | null;  
+  products?:       string[];       
 }
 
-// ── FertilizerPlan: rich items + legacy flat fields for backward compat ───
+
 export interface FertilizerPlan {
-  // New rich structure
+  
   items?:         FertilizerPlanItem[];
   warnings?:      string[];
   organicAdvice?: string;
@@ -43,7 +43,7 @@ export interface FertilizerPlan {
     issues?: string[];
   };
 
-  // Legacy flat fields (kept for PDF report and old data)
+  
   basal?:           string;
   basal_rate?:      string;
   topdress?:        string;
