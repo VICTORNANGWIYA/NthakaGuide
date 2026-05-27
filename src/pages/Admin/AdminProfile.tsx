@@ -150,7 +150,7 @@ function AvatarUpload({
           </div>
         )}
 
-        {/* Remove badge */}
+        
         {avatarUrl && !uploading && (
           <button type="button" onClick={onRemove}
             className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-white
@@ -170,7 +170,6 @@ function AvatarUpload({
   );
 }
 
-/* ── Password strength ── */
 const PW_RULES = [
   (pw: string) => pw.length >= 8,
   (pw: string) => /[a-z]/.test(pw),
