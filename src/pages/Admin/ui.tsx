@@ -72,7 +72,6 @@ export function Loader() {
   );
 }
 
-// ── Error message with retry ──────────────────────────────────────────────────
 export function ErrorMsg({ msg, onRetry }: { msg: string; onRetry: () => void }) {
   return (
     <div className="flex flex-col items-center gap-3 py-8">
@@ -84,7 +83,6 @@ export function ErrorMsg({ msg, onRetry }: { msg: string; onRetry: () => void })
   );
 }
 
-// ── Alert badge ───────────────────────────────────────────────────────────────
 export function AlertBadge({ level }: { level: string }) {
   if (level === "error")   return <Badge variant="destructive" className="text-[10px]">Error</Badge>;
   if (level === "warning") return <Badge className="bg-golden text-golden-foreground text-[10px]">Warning</Badge>;
@@ -92,7 +90,6 @@ export function AlertBadge({ level }: { level: string }) {
   return <Badge variant="outline" className="text-[10px]">Info</Badge>;
 }
 
-// ── Alert icon ────────────────────────────────────────────────────────────────
 export function AlertIcon({ level }: { level: string }) {
   if (level === "error")   return <XCircle       className="h-4 w-4 text-destructive      shrink-0" />;
   if (level === "warning") return <AlertTriangle  className="h-4 w-4 text-golden          shrink-0" />;
@@ -100,7 +97,7 @@ export function AlertIcon({ level }: { level: string }) {
   return                          <Info           className="h-4 w-4 text-muted-foreground shrink-0" />;
 }
 
-// ── Score colour helper ───────────────────────────────────────────────────────
+
 export function scoreColor(s: number) {
   return s >= 90 ? "text-primary" : s >= 75 ? "text-golden" : "text-destructive";
 }
