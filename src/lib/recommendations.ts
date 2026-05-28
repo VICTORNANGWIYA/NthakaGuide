@@ -21,18 +21,18 @@ export interface RotationAdvice {
 
 
 export interface FertilizerPlanItem {
-  type:            string;        
+  type:            string;         
   applicationRate: string;         
-  timing:          string;         
-  notes?:          string;       
-  alternative?:    string | null; 
+  timing:          string;       
+  notes?:          string;         
+  alternative?:    string | null;  
   confidence?:     string | null;  
-  products?:       string[];       
+  products?:       string[];     
 }
 
 
 export interface FertilizerPlan {
-  
+ 
   items?:         FertilizerPlanItem[];
   warnings?:      string[];
   organicAdvice?: string;
@@ -99,7 +99,7 @@ export async function generateRecommendations(
   token?: string,
 ): Promise<Recommendation> {
 
-  const res = await fetch("http://localhost:5000/api/recommend", {
+  const res = await fetch("https://nthakaguide-backend.onrender.com/api/recommend", {
     method:  "POST",
     headers: {
       "Content-Type": "application/json",
