@@ -152,27 +152,7 @@ export function OverviewTab({
         </Card>
       </div>
 
-      {/* Fertilizer distribution */}
-      <Card className="border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Fertilizer Distribution</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingFerts ? <Loader /> : (
-            <div className="space-y-3">
-              {ferts.map((f, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="text-sm flex-1 min-w-[120px]">{f.name}</span>
-                  <span className="text-xs font-semibold text-primary w-8 text-right">{f.pct}%</span>
-                  <div className="w-40 h-1.5 bg-muted rounded-full">
-                    <div className="h-full bg-primary rounded-full" style={{ width: `${f.pct}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+     
     </TabsContent>
   );
 }
