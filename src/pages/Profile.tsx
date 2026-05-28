@@ -1,3 +1,180 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  UserRound, Mail, Save, Phone, MapPin,
+  Lock, Trash2, Eye, EyeOff, AlertTriangle, ShieldCheck, X,
+  ChevronRight, Camera, Loader2, ZoomIn,
+} from "lucide-react";
+import NavHeader from "@/components/NavHeader";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  Card, CardContent, CardDescription, CardHeader, CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.jpeg";
+import { MALAWI_DISTRICTS } from "@/lib/malawi-districts";
+import { useNavigate } from "react-router-dom";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "https://nthakaguide-backend.onrender.com";
+
+const DELETION_REASONS = [
+  { key: "not_useful",       label: "The app is not useful for my farming needs" },
+  { key: "too_complicated",  label: "The app is too complicated to use" },
+  { key: "poor_accuracy",    label: "Crop or fertilizer recommendations are inaccurate" },
+  { key: "no_internet",      label: "I do not have reliable internet access" },
+  { key: "privacy_concerns", label: "I have concerns about my data and privacy" },
+  { key: "switching_app",    label: "I am switching to a different application" },
+  { key: "temporary",        label: "I am taking a break and may return" },
+  { key: "other",            label: "Other reason" },
+];
+
+function PasswordField({
+  id, label, value, onChange, placeholder = "••••••••",
+}: {
+  id: string; label: string; value: string;
+  onChange: (v: string) => void; placeholder?: string;
+}) {
+  const [show, setShow] = useState(false);
+  return (
+    
+
+
+      {label}
+      
+
+
+         onChange(e.target.value)}
+          placeholder={placeholder}
+          className="pr-10"
+          autoComplete="off"
+          data-lpignore="true"
+        />
+         setShow(v => !v)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          tabIndex={-1}
+          aria-label={show ? "Hide" : "Show"}
+        >
+          {show ?  : }
+        
+      
+
+
+    
+
+
+  );
+}
+
+function ImageLightbox({ src, name, onClose }: { src: string; name: string; onClose: () => void }) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    
+       e.stopPropagation()}
+      >
+        
+          
+        
+
+        {/ Full-size image /}
+        
+
+        {name && (
+          
+
+{name}
+
+
+        )}
+
+        
+
+Press Esc or click outside to close
+
+
+      
+    
+  );
+}
+
+function AvatarUpload({
+  avatarUrl, initials, name, onUpload, onRemove, uploading,
+}: {
+  avatarUrl: string;
+  initials: string;
+  name: string;
+  onUpload: (file: File) => void;
+  onRemove: () => void;
+  uploading: boolean;
+}) {
+  const fileRef = useRef(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent) => {
+    const file = e.target.files?.[0];
+    if (file) onUpload(file);
+    e.target.value = "";
+  };
+
+  return (
+    <>
+      
+
+
+
+   {
+      if (avatarUrl) setLightboxOpen(true);
+    }}
+    className="rounded-full focus:outline-none"
+  >
+    
+      {avatarUrl ? (
+        
+      ) : null}
+      
+        {initials}
+      
+    
+
+   fileRef.current?.click()}
+    className="absolute bottom-0 right-0 h-8 w-8 rounded-full
+               bg-primary text-white flex items-center justify-center
+               shadow-lg hover:bg-primary/80 transition"
+  >
+    {uploading ? (
+      
+    ) : (
+      
+    )}
+  
+
+  
+
+
+
+
+
+      
+        {lightboxOpen && avatarUrl && (
+           setLightboxOpen(false)} />
+        )}
+      
+    
+  );
+}
+
 function DeleteModal({
   onConfirm, onCancel, loading,
 }: {
