@@ -117,7 +117,7 @@ export default function AdminDashboard() {
     { id: "logs",      label: "Logs",       Icon: ClipboardList },
     { id: "chatbot",   label: "AI Chatbot", Icon: Bot },
     { id: "rainfall",  label: "Rainfall",   Icon: CloudRain },
-    { id: "settings",  label: "Settings",   Icon: Settings },
+   
   ];
 
   return (
