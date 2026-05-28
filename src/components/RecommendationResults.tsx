@@ -1,10 +1,10 @@
-import { motion }                                  from "framer-motion";
-import { Button }                                  from "@/components/ui/button";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge }                                   from "@/components/ui/badge";
-import { Progress }                                from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import type { Recommendation, SoilInput, FertilizerPlanItem } from "@/lib/recommendations";
-import { generatePDFReport }                       from "@/lib/pdf-report";
+import { generatePDFReport } from "@/lib/pdf-report";
 import {
   Download, CloudRain, Sprout, FlaskConical, FileText,
   ArrowLeft, AlertTriangle, CheckCircle, Cpu, RotateCcw,
@@ -13,320 +13,243 @@ import {
 
 interface Props {
   result: Recommendation;
-  input:  SoilInput;
+  input: SoilInput;
   onBack: () => void;
 }
 
 export default function RecommendationResults({ result, input, onBack }: Props) {
-
   const alertIcon = (type: string) => {
-    if (type === "danger")  return <AlertTriangle className="h-4 w-4 text-destructive shrink-0" />;
-    if (type === "warning") return <AlertTriangle className="h-4 w-4 text-yellow-600 shrink-0" />;
-    return <CheckCircle className="h-4 w-4 text-primary shrink-0" />;
+    if (type === "danger")  return <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />;
+    if (type === "warning") return <AlertTriangle className="h-5 w-5 text-yellow-700 shrink-0" />;
+    return <CheckCircle className="h-5 w-5 text-primary shrink-0" />;
   };
 
-  const crops        = result.crops      ?? [];
-  const soilAlerts   = result.soilAlerts ?? [];
-  const farmerCtx    = result.farmerContext ?? null;
-
+  const crops      = result.crops ?? [];
+  const soilAlerts = result.soilAlerts ?? [];
+  const farmerCtx  = result.farmerContext ?? null;
   const mlPrediction = result.mlPrediction ?? null;
-  const mlCrop       = mlPrediction?.topCrop  ?? null;
-  const mlConf       = mlPrediction?.topConf  ?? null;
-  const mlAlgorithm  = mlPrediction?.algorithm ?? "Random Forest";
+  const mlCrop = mlPrediction?.topCrop ?? null;
+  const mlConf = mlPrediction?.topConf ?? null;
+  const mlAlgorithm = mlPrediction?.algorithm ?? "Random Forest";
 
-  // ── Fertilizer plan renderer ─────────────────────────────────────────────
-  const renderFertilizerPlan = (plan: import("@/lib/recommendations").FertilizerPlan, cropName: string) => {
+  // Base text class — professional, readable, high contrast
+  const bodyText = "text-base leading-relaxed text-slate-900 dark:text-slate-100";
+  const labelText = "text-sm font-semibold text-slate-700 dark:text-slate-300";
+
+  const renderFertilizerPlan = (
+    plan: import("@/lib/recommendations").FertilizerPlan,
+    cropName: string
+  ) => {
     const hasItems    = (plan.items ?? []).length > 0;
     const hasLegacy   = !!(plan.basal || plan.topdress);
     const hasWarnings = (plan.warnings ?? []).length > 0;
-
     if (!hasItems && !hasLegacy) return null;
 
     return (
-      <div className="rounded-md border border-border p-3 space-y-3">
-
+      <div className="mt-6 rounded-lg border-2 border-primary/30 bg-primary/5 p-5 space-y-4">
         {/* Header */}
-        <p className="text-xs font-semibold text-foreground flex items-center gap-1">
-          <FlaskConical className="h-3.5 w-3.5 text-primary" />
-          Fertilizer Plan for {cropName}
+        <div className="flex items-center gap-2 flex-wrap">
+          <FlaskConical className="h-6 w-6 text-primary" />
+          <h4 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            Fertilizer Plan for {cropName}
+          </h4>
           {plan.confidence && (
-            <span className={`ml-auto text-[10px] font-normal px-2 py-0.5 rounded-full ${
+            <span className={`text-sm px-3 py-1 rounded-full font-semibold ${
               plan.confidence.score >= 85
-                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                ? "bg-green-100 text-green-900 dark:bg-green-900/40 dark:text-green-200"
                 : plan.confidence.score >= 70
-                ? "bg-primary/10 text-primary"
-                : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                ? "bg-primary/15 text-primary"
+                : "bg-yellow-100 text-yellow-900 dark:bg-yellow-900/40 dark:text-yellow-200"
             }`}>
               {plan.confidence.label}
             </span>
           )}
-        </p>
+        </div>
 
-        {/* Rich plan items (new backend shape) */}
+        {/* Rich plan items */}
         {hasItems && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {plan.items!.map((item: FertilizerPlanItem, j: number) => (
-              <div
-                key={j}
-                className="text-xs border-t border-border pt-2 first:border-0 first:pt-0 space-y-1"
-              >
-                {/* Timing badge + rate */}
-                <div className="flex items-start justify-between gap-2 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium text-[10px]">
-                    {item.timing}
-                  </span>
-                  <span className="text-primary font-semibold text-[11px] tabular-nums">
-                    {item.applicationRate}
-                  </span>
+              <div key={j} className="rounded-md border border-border bg-card p-4 space-y-2">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <Badge variant="default" className="text-sm px-3 py-1">{item.timing}</Badge>
+                  <span className="text-base font-bold text-primary">{item.applicationRate}</span>
                 </div>
-
-                {/* Action / product name */}
-                <p className="font-medium text-foreground">{item.type}</p>
-
-                {/* Notes */}
-                {item.notes && (
-                  <p className="text-muted-foreground leading-relaxed">{item.notes}</p>
-                )}
-
-                {/* Alternative */}
+                <p className={`${bodyText} font-semibold`}>{item.type}</p>
+                {item.notes && <p className={bodyText}>{item.notes}</p>}
                 {item.alternative && (
-                  <p className="text-muted-foreground italic">
-                    Alternative: {item.alternative}
+                  <p className="text-base text-slate-800 dark:text-slate-200">
+                    <span className="font-semibold">Alternative:</span> {item.alternative}
                   </p>
                 )}
-
-                {/* Confidence badge */}
                 {item.confidence && (
-                  <span className="inline-block text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                    {item.confidence}
-                  </span>
+                  <Badge variant="secondary" className="text-xs">{item.confidence}</Badge>
                 )}
               </div>
             ))}
           </div>
         )}
 
-        {/* Legacy flat fields fallback */}
+        {/* Legacy fields */}
         {!hasItems && hasLegacy && (
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="space-y-2">
             {plan.basal && (
-              <div>
-                <span className="text-muted-foreground">Basal:</span>{" "}
-                <strong className="text-foreground">{plan.basal}</strong>
-                {plan.basal_rate && (
-                  <span className="text-muted-foreground"> @ {plan.basal_rate}</span>
-                )}
-              </div>
+              <p className={bodyText}>
+                <span className={labelText}>Basal:</span> {plan.basal}
+                {plan.basal_rate && <span className="text-primary font-semibold"> @ {plan.basal_rate}</span>}
+              </p>
             )}
             {plan.topdress && (
-              <div>
-                <span className="text-muted-foreground">Top-dress:</span>{" "}
-                <strong className="text-foreground">{plan.topdress}</strong>
-                {plan.topdress_rate && (
-                  <span className="text-muted-foreground"> @ {plan.topdress_rate}</span>
-                )}
-              </div>
+              <p className={bodyText}>
+                <span className={labelText}>Top-dress:</span> {plan.topdress}
+                {plan.topdress_rate && <span className="text-primary font-semibold"> @ {plan.topdress_rate}</span>}
+              </p>
             )}
             {plan.topdress_timing && (
-              <div className="col-span-2">
-                <span className="text-muted-foreground">Timing:</span>{" "}
-                <span className="text-foreground">{plan.topdress_timing}</span>
-              </div>
+              <p className={bodyText}>
+                <span className={labelText}>Timing:</span> {plan.topdress_timing}
+              </p>
             )}
-            {plan.notes && (
-              <p className="col-span-2 text-muted-foreground">{plan.notes}</p>
-            )}
+            {plan.notes && <p className={bodyText}>{plan.notes}</p>}
           </div>
         )}
 
-        {/* Organic advice */}
         {plan.organicAdvice && (
-          <div className="flex gap-2 items-start border-t border-border pt-2">
-            <Leaf className="h-3.5 w-3.5 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
-            <p className="text-xs text-green-800 dark:text-green-300">
-              {plan.organicAdvice}
-            </p>
+          <div className="flex gap-3 rounded-md bg-green-50 dark:bg-green-900/20 p-3 border border-green-200 dark:border-green-800">
+            <Leaf className="h-5 w-5 text-green-700 dark:text-green-300 shrink-0 mt-0.5" />
+            <p className="text-base text-green-900 dark:text-green-100">{plan.organicAdvice}</p>
           </div>
         )}
 
-        {/* Warnings */}
         {hasWarnings && (
-          <div className="border-t border-border pt-2 space-y-1">
+          <div className="space-y-2">
             {plan.warnings!.map((w, k) => (
-              <div key={k} className="flex gap-1.5 items-start">
-                <ShieldAlert className="h-3.5 w-3.5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
-                <p className="text-xs text-yellow-800 dark:text-yellow-300">{w}</p>
+              <div key={k} className="flex gap-2 items-start rounded-md bg-yellow-50 dark:bg-yellow-900/20 p-3 border border-yellow-200 dark:border-yellow-800">
+                <ShieldAlert className="h-5 w-5 text-yellow-700 dark:text-yellow-300 shrink-0 mt-0.5" />
+                <p className="text-base text-yellow-900 dark:text-yellow-100">{w}</p>
               </div>
             ))}
           </div>
         )}
 
-        {/* Confidence message */}
         {plan.confidence?.message && (
-          <p className="text-[10px] text-muted-foreground/70 border-t border-border pt-2 leading-relaxed">
-            {plan.confidence.message}
-          </p>
+          <p className="text-sm italic text-slate-700 dark:text-slate-300">{plan.confidence.message}</p>
         )}
       </div>
     );
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4 }}
-      className="space-y-8"
-    >
-
-      {/* ── Header actions ─────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <Button variant="ghost" onClick={onBack} className="text-muted-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" /> New Analysis
+    <div className="space-y-6 text-slate-900 dark:text-slate-100">
+      {/* Header actions */}
+      <div className="flex justify-between items-center flex-wrap gap-3">
+        <Button onClick={onBack} variant="outline" size="lg" className="text-base">
+          <ArrowLeft className="h-5 w-5 mr-2" /> New Analysis
         </Button>
         <Button
           onClick={() => generatePDFReport(input, result)}
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          size="lg"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 text-base"
         >
-          <Download className="mr-2 h-4 w-4" /> Download PDF Report
+          <Download className="h-5 w-5 mr-2" /> Download PDF Report
         </Button>
       </div>
 
-      {/* ── ML Prediction badge ────────────────────────────────────── */}
+      {/* ML Prediction */}
       {mlCrop && (
-        <Card className="bg-primary/5 border-primary/20">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Cpu className="h-5 w-5 text-primary shrink-0" />
+        <Card className="border-2 border-primary/40 bg-primary/5">
+          <CardContent className="flex items-start gap-3 p-5">
+            <Cpu className="h-6 w-6 text-primary mt-1" />
             <div>
-              <p className="text-sm font-semibold text-foreground">
-                ML Model Prediction:{" "}
-                <span className="text-primary">{mlCrop}</span>
-                {mlConf !== null && (
-                  <span className="text-muted-foreground ml-2">({mlConf}% confidence)</span>
-                )}
+              <p className="text-lg">
+                <span className="font-bold">ML Model Prediction:</span>{" "}
+                <span className="font-bold text-primary">{mlCrop}</span>
+                {mlConf !== null && <span className="ml-2 text-base text-slate-700 dark:text-slate-300">({mlConf}% confidence)</span>}
               </p>
-              <p className="text-xs text-muted-foreground mt-0.5">Algorithm: {mlAlgorithm}</p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 mt-1">Algorithm: {mlAlgorithm}</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* ── Farmer context banner ──────────────────────────────────── */}
+      {/* Farmer context */}
       {farmerCtx && (
-        <div className="flex flex-wrap gap-2 items-center text-xs">
-          {farmerCtx.landUseLabel && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
-              🌾 Goal: {farmerCtx.landUseLabel}
-            </span>
-          )}
-          {farmerCtx.previousCrop && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
-              <RotateCcw className="h-3 w-3" /> Previous: {farmerCtx.previousCrop}
-            </span>
-          )}
+        <div className="flex flex-wrap gap-2">
+          {farmerCtx.landUseLabel && <Badge variant="secondary" className="text-base px-3 py-1">🌾 Goal: {farmerCtx.landUseLabel}</Badge>}
+          {farmerCtx.previousCrop && <Badge variant="secondary" className="text-base px-3 py-1">Previous: {farmerCtx.previousCrop}</Badge>}
         </div>
       )}
 
-      {/* ── Rainfall & Soil Assessment ─────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <CloudRain className="h-4 w-4" /> Rainfall Forecast — {input.district.name}
+      {/* Rainfall & Soil */}
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <CloudRain className="h-6 w-6 text-primary" />
+              Rainfall Forecast — {input.district.name}
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold text-foreground">
-              {result.forecastedRainfall} mm
-            </p>
-            <div className="flex gap-2 mt-2 flex-wrap">
-              <Badge
-                variant={
-                  result.rainfallCategory === "High"     ? "default"
-                  : result.rainfallCategory === "Low"    ? "destructive"
-                  : "secondary"
-                }
-              >
-                {result.rainfallCategory} Rainfall
-              </Badge>
-              <Badge variant="outline">{result.rainfallBand}</Badge>
+          <CardContent className="space-y-3">
+            <p className="text-4xl font-bold text-primary">{result.forecastedRainfall} mm</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge className="text-base px-3 py-1">{result.rainfallCategory} Rainfall</Badge>
+              <span className="text-base text-slate-700 dark:text-slate-300">{result.rainfallBand}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {result.rainfallBandDescription}
-            </p>
+            <p className={bodyText}>{result.rainfallBandDescription}</p>
             {result.rainfallSource && (
-              <p className="text-[10px] text-muted-foreground/60 mt-1">
-                Source: {result.rainfallSource}
-              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Source: {result.rainfallSource}</p>
             )}
           </CardContent>
         </Card>
 
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              <FileText className="h-4 w-4" /> Soil Assessment
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Sprout className="h-6 w-6 text-primary" /> Soil Assessment
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-foreground leading-relaxed">
-              {result.soilAssessment}
-            </p>
+            <p className={bodyText}>{result.soilAssessment}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* ── Soil Alerts ────────────────────────────────────────────── */}
+      {/* Soil Alerts */}
       {soilAlerts.length > 0 && (
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" /> Soil Health Alerts
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <AlertTriangle className="h-6 w-6 text-yellow-700" /> Soil Health Alerts
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-3">
             {soilAlerts.map((alert, i) => (
-              <div
-                key={i}
-                className={`flex gap-2 items-start p-2 rounded-md text-sm ${
-                  alert.type === "danger"
-                    ? "bg-destructive/5 text-destructive"
-                    : alert.type === "warning"
-                    ? "bg-yellow-50 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300"
-                    : alert.type === "ok"
-                    ? "bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-300"
-                    : "bg-primary/5 text-primary"
-                }`}
-              >
+              <div key={i} className="flex items-start gap-3 p-3 rounded-md bg-muted/40">
                 {alertIcon(alert.type)}
-                <span>{alert.message}</span>
+                <p className={bodyText}>{alert.message}</p>
               </div>
             ))}
           </CardContent>
         </Card>
       )}
 
-      {/* ── General rotation tip ───────────────────────────────────── */}
+      {/* Rotation tip */}
       {farmerCtx?.rotationTip && (
-        <Card className="bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800">
-          <CardContent className="p-4 flex gap-3 items-start">
-            <RotateCcw className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+        <Card className="border-l-4 border-l-primary">
+          <CardContent className="flex gap-3 p-5">
+            <RotateCcw className="h-6 w-6 text-primary mt-1" />
             <div>
-              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                Crop Rotation Tip
-              </p>
-              <p className="text-xs text-blue-700 dark:text-blue-400 mt-0.5">
-                {farmerCtx.rotationTip}
-              </p>
+              <p className="text-lg font-bold">Crop Rotation Tip</p>
+              <p className={`${bodyText} mt-1`}>{farmerCtx.rotationTip}</p>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* ── Crop Recommendations ───────────────────────────────────── */}
-      <section>
-        <h2 className="font-display text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-          <Sprout className="h-5 w-5 text-primary" /> Top Crop Recommendations
+      {/* Crop Recommendations */}
+      <div>
+        <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
+          <Sprout className="h-7 w-7 text-primary" /> Top Crop Recommendations
         </h2>
 
         <div className="space-y-4">
@@ -338,101 +261,54 @@ export default function RecommendationResults({ result, input, onBack }: Props) 
             );
 
             return (
-              <motion.div
-                key={`${crop.crop}-${i}`}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.08 }}
-              >
-                <Card className={`bg-card border-border hover:shadow-md transition-shadow ${
-                  i === 0 ? "border-primary/30" : ""
-                }`}>
-                  <CardContent className="p-4 space-y-4">
-
-                    {/* Crop header */}
-                    <div className="flex items-center gap-4">
-                      <span className="text-3xl">{crop.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-foreground text-base">{crop.crop}</h3>
-                            {i === 0 && (
-                              <Badge className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">
-                                Top Pick
-                              </Badge>
-                            )}
-                          </div>
-                          <Badge variant="outline" className="shrink-0 text-xs">{crop.season}</Badge>
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                <Card>
+                  <CardContent className="p-5">
+                    <div className="flex items-start gap-4">
+                      <span className="text-5xl">{crop.emoji}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-2xl font-bold">{crop.crop}</h3>
+                          {i === 0 && <Badge className="text-sm">Top Pick</Badge>}
+                          <span className="text-base text-slate-700 dark:text-slate-300">{crop.season}</span>
                         </div>
-                        <Progress value={crop.score ?? 0} className="h-2 mb-1.5" />
-                        <p className="text-xs text-muted-foreground">{crop.reason}</p>
+                        <p className={`${bodyText} mt-2`}>{crop.reason}</p>
                       </div>
-                      <span className="text-lg font-bold text-primary tabular-nums shrink-0">
-                        {crop.score}%
-                      </span>
+                      <span className="text-2xl font-bold text-primary">{crop.score}%</span>
                     </div>
 
-                    {/* Fertilizer Plan */}
                     {hasFert && renderFertilizerPlan(crop.fertilizerPlan, crop.crop)}
 
-                    {/* Rotation Advice */}
                     {crop.rotationAdvice && (
-                      <div className={`rounded-md p-3 space-y-1 text-xs border ${
-                        crop.rotationAdvice.type === "warning"
-                          ? "bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800"
-                          : crop.rotationAdvice.type === "positive"
-                          ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                          : "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800"
-                      }`}>
-                        <p className={`font-semibold flex items-center gap-1 ${
-                          crop.rotationAdvice.type === "warning"
-                            ? "text-yellow-800 dark:text-yellow-300"
-                            : crop.rotationAdvice.type === "positive"
-                            ? "text-green-800 dark:text-green-300"
-                            : "text-blue-800 dark:text-blue-300"
-                        }`}>
-                          <RotateCcw className="h-3 w-3" />
-                          {crop.rotationAdvice.type === "warning"
-                            ? "⚠ Rotation Warning"
-                            : crop.rotationAdvice.type === "positive"
-                            ? "✓ Good Rotation"
+                      <div className="mt-4 rounded-md border border-border bg-muted/30 p-4 space-y-2">
+                        <p className="text-lg font-bold">
+                          {crop.rotationAdvice.type === "warning" ? "⚠ Rotation Warning"
+                            : crop.rotationAdvice.type === "positive" ? "✓ Good Rotation"
                             : "ℹ Rotation Info"}
                         </p>
-                        <p className={
-                          crop.rotationAdvice.type === "warning"
-                            ? "text-yellow-700 dark:text-yellow-400"
-                            : crop.rotationAdvice.type === "positive"
-                            ? "text-green-700 dark:text-green-400"
-                            : "text-blue-700 dark:text-blue-400"
-                        }>
-                          {crop.rotationAdvice.message}
-                        </p>
-                        <p className="text-muted-foreground italic">
-                          {crop.rotationAdvice.recommendation}
-                        </p>
+                        <p className={bodyText}>{crop.rotationAdvice.message}</p>
+                        <p className={`${bodyText} font-medium`}>{crop.rotationAdvice.recommendation}</p>
                       </div>
                     )}
-
                   </CardContent>
                 </Card>
               </motion.div>
             );
           })}
         </div>
-      </section>
+      </div>
 
-      {/* ── Bottom download ────────────────────────────────────────── */}
-      <div className="text-center pt-4 pb-8">
+      {/* Bottom download */}
+      <div className="flex justify-center pt-4">
         <Button
           onClick={() => generatePDFReport(input, result)}
           variant="outline"
           size="lg"
-          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground text-base"
         >
-          <Download className="mr-2 h-4 w-4" /> Download Full Report (PDF)
+          <FileText className="h-5 w-5 mr-2" /> Download Full Report (PDF)
         </Button>
       </div>
-
-    </motion.div>
+    </div>
   );
 }
