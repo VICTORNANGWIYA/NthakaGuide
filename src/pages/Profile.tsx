@@ -44,32 +44,30 @@ function PasswordField({
 }) {
   const [show, setShow] = useState(false);
   return (
-    
-
-
-      {label}
-      
-
-
-         onChange(e.target.value)}
+    <div className="space-y-2">
+      <Label htmlFor={id} className="text-sm font-medium">{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={e => onChange(e.target.value)}
           placeholder={placeholder}
           className="pr-10"
           autoComplete="off"
           data-lpignore="true"
         />
-         setShow(v => !v)}
+        <button
+          type="button"
+          onClick={() => setShow(v => !v)}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
           tabIndex={-1}
           aria-label={show ? "Hide" : "Show"}
         >
-          {show ?  : }
-        
-      
-
-
-    
-
-
+          {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -81,31 +79,44 @@ function ImageLightbox({ src, name, onClose }: { src: string; name: string; onCl
   }, [onClose]);
 
   return (
-    
-       e.stopPropagation()}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md p-6"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.82, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.82, opacity: 0, y: 20 }}
+        transition={{ type: "spring", damping: 22, stiffness: 260 }}
+        className="relative flex flex-col items-center gap-4"
+        onClick={e => e.stopPropagation()}
       >
-        
-          
-        
+        <button
+          onClick={onClose}
+          className="absolute -top-3 -right-3 z-10 h-9 w-9 rounded-full bg-white/10 border border-white/20
+                     flex items-center justify-center text-white hover:bg-white/20 transition-colors shadow-lg"
+          aria-label="Close"
+        >
+          <X className="h-4 w-4" />
+        </button>
 
-        {/ Full-size image /}
-        
+        {/* Full-size image */}
+        <img
+          src={src}
+          alt={name}
+          className="max-h-[80vh] max-w-[80vw] w-auto h-auto rounded-2xl shadow-2xl object-contain"
+        />
 
         {name && (
-          
-
-{name}
-
-
+          <p className="text-white/80 text-sm font-medium tracking-wide">{name}</p>
         )}
 
-        
-
-Press Esc or click outside to close
-
-
-      
-    
+        <p className="text-white/40 text-xs">Press Esc or click outside to close</p>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -119,10 +130,10 @@ function AvatarUpload({
   onRemove: () => void;
   uploading: boolean;
 }) {
-  const fileRef = useRef(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
-  const handleFileChange = (e: React.ChangeEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) onUpload(file);
     e.target.value = "";
@@ -130,48 +141,55 @@ function AvatarUpload({
 
   return (
     <>
-      
+      <div className="relative inline-block">
 
-
-
-   {
+  <button
+    type="button"
+    onClick={() => {
       if (avatarUrl) setLightboxOpen(true);
     }}
     className="rounded-full focus:outline-none"
   >
-    
+    <Avatar className="h-24 w-24 ring-2 ring-border shadow-md cursor-zoom-in">
       {avatarUrl ? (
-        
+        <AvatarImage src={avatarUrl} className="object-cover" />
       ) : null}
-      
+      <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
         {initials}
-      
-    
+      </AvatarFallback>
+    </Avatar>
+  </button>
 
-   fileRef.current?.click()}
+  <button
+    type="button"
+    onClick={() => fileRef.current?.click()}
     className="absolute bottom-0 right-0 h-8 w-8 rounded-full
                bg-primary text-white flex items-center justify-center
                shadow-lg hover:bg-primary/80 transition"
   >
     {uploading ? (
-      
+      <Loader2 className="h-4 w-4 animate-spin" />
     ) : (
-      
+      <Camera className="h-4 w-4" />
     )}
-  
+  </button>
 
-  
+  <input
+    ref={fileRef}
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={handleFileChange}
+  />
 
+</div>
 
-
-
-
-      
+      <AnimatePresence>
         {lightboxOpen && avatarUrl && (
-           setLightboxOpen(false)} />
+          <ImageLightbox src={avatarUrl} name={name} onClose={() => setLightboxOpen(false)} />
         )}
-      
-    
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -191,95 +209,70 @@ function DeleteModal({
   const selectedLabel = DELETION_REASONS.find(r => r.key === reason)?.label ?? "";
 
   return (
-    
-       e.stopPropagation()}
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <motion.div
+        initial={{ scale: 0.92, y: 16 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.92, y: 16 }}
+        transition={{ type: "spring", damping: 24, stiffness: 300 }}
+        className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-6 space-y-5"
+        onClick={e => e.stopPropagation()}
       >
-        
-          
-        
+        <button onClick={onCancel}
+          className="absolute top-4 right-4 h-8 w-8 rounded-full bg-muted/80 flex items-center
+                     justify-center text-muted-foreground hover:text-foreground transition-colors">
+          <X className="h-4 w-4" />
+        </button>
 
-        
-
-
-          
-
-
-            
-          
-
-
-          
-
-
-            
-
-Delete your account?
-
-
-            
-
-
+        <div className="flex flex-col items-center text-center gap-3 pt-2">
+          <div className="h-14 w-14 rounded-full bg-destructive/10 flex items-center justify-center">
+            <AlertTriangle className="h-7 w-7 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Delete your account?</h2>
+            <p className="text-sm text-muted-foreground mt-1">
               {step === "survey"
                 ? "Before you go, please tell us why. Your feedback helps us improve NthakaGuide."
                 : "This is permanent. All your soil analyses, history, and data will be erased."}
-            
+            </p>
+          </div>
+        </div>
 
-
-          
-
-
-        
-
-
-
-        
-
-
+        <div className="flex items-center justify-center gap-2">
           {(["survey", "confirm"] as const).map((s, i) => (
-            
-
-
+            <div key={s} className={`h-2 rounded-full transition-all duration-300 ${
+              step === s ? "w-6 bg-destructive" : i < (step === "confirm" ? 1 : 0) ? "w-2 bg-destructive/40" : "w-2 bg-muted"
+            }`} />
           ))}
-        
-
-
+        </div>
 
         {step === "survey" && (
-          
-
-
-            
-
-
-              
-                Why are you deleting your account? *
-              
-              
-
-
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">
+                Why are you deleting your account? <span className="text-destructive ml-1">*</span>
+              </Label>
+              <div className="space-y-2">
                 {DELETION_REASONS.map(r => (
-                   setReason(r.key)}
+                  <button key={r.key} type="button" onClick={() => setReason(r.key)}
                     className={`w-full text-left px-3 py-2.5 rounded-lg border text-sm transition-all
                       ${reason === r.key
                         ? "border-destructive/60 bg-destructive/5 text-destructive font-medium"
                         : "border-border text-foreground hover:border-muted-foreground/40 hover:bg-muted/30"}`}>
-                    
+                    <span className={`inline-block w-4 h-4 rounded-full border mr-2.5 align-middle transition-colors ${
+                      reason === r.key ? "bg-destructive border-destructive" : "border-muted-foreground"}`} />
                     {r.label}
-                  
+                  </button>
                 ))}
-              
-
-
-            
-
-
-            
-
-
-              
-                Additional comments (optional)
-              
-               setDetails(e.target.value)}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-muted-foreground">
+                Additional comments <span className="font-normal">(optional)</span>
+              </Label>
+              <Textarea value={details} onChange={e => setDetails(e.target.value)}
                 placeholder="Tell us more…" className="resize-none text-sm" rows={3} maxLength={1000} />
               <p className="text-[11px] text-muted-foreground text-right">{details.length}/1000</p>
             </div>
@@ -394,7 +387,7 @@ export default function Profile() {
 
   const handleAvatarUpload = async (file: File) => {
     if (!token) return;
-    if (file.size > 2  1024  1024) {
+    if (file.size > 2 * 1024 * 1024) {
       toast({ title: "Image too large", description: "Please choose an image under 2 MB.", variant: "destructive" });
       return;
     }
@@ -532,7 +525,7 @@ export default function Profile() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
-            {/ ── Left ── /}
+            {/* ── Left ── */}
             <div className="space-y-4">
               <Card>
                 <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
@@ -683,4 +676,4 @@ export default function Profile() {
       </AnimatePresence>
     </div>
   );
-}</body> 
+}
