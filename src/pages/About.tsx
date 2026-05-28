@@ -288,9 +288,7 @@ export default function About() {
           <p className="text-xs text-muted-foreground">
             NthakaGuide · 2025/2026
           </p>
-          <p className="text-xs text-muted-foreground">
-            Rainfall data: NASA POWER · Live forecast: Open-Meteo · ML: scikit-learn
-          </p>
+          
         </motion.div>
 
       </main>
