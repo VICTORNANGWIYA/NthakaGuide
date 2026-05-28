@@ -263,7 +263,6 @@ export default function AdminDashboard() {
             />
 
             <RainfallTab />
-            <SettingsTab />
 
           </Tabs>
         </motion.div>
