@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import logo from "@/assets/logo.jpeg";
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+
 interface Message {
   role: "user" | "assistant";
   content: string;
@@ -23,9 +23,7 @@ interface Conversation {
   updatedAt: number;
 }
 
-// ── Per-user storage key ──────────────────────────────────────────────────────
-// FIX: old code used a single key — everyone shared the same history.
-// Now we scope by user ID so each account sees only its own conversations.
+
 const storageKey = (userId: string) => `nthakaguide_chats_${userId}`;
 
 function loadConversations(userId: string): Conversation[] {
@@ -64,15 +62,14 @@ function newConversation(): Conversation {
   };
 }
 
-// Auto-title from first user message (first 40 chars)
+
 function deriveTitle(messages: Message[]): string {
   const first = messages.find(m => m.role === "user");
   if (!first) return "New conversation";
   return first.content.slice(0, 40) + (first.content.length > 40 ? "…" : "");
 }
 
-// ── Offline fallback AI ───────────────────────────────────────────────────────
-// Used when the backend is unreachable, so users still get helpful responses.
+
 function offlineFallback(userMessage: string): string {
   const msg = userMessage.toLowerCase();
   if (msg.includes("maize") || msg.includes("corn"))
@@ -86,7 +83,7 @@ function offlineFallback(userMessage: string): string {
   return "I'm currently operating in **offline mode** — the backend server is unreachable.\n\nI can still answer basic questions about:\n- Malawi crops (maize, tobacco, groundnuts, beans, soybean)\n- Fertiliser types available in Malawi\n- Soil pH and nutrient management\n- Planting seasons\n\nFor full AI-powered recommendations, please check your connection and try again.";
 }
 
-// ── Markdown renderer ─────────────────────────────────────────────────────────
+
 function renderContent(content: string) {
   const lines = content.split("\n");
   const elements: JSX.Element[] = [];
@@ -153,7 +150,7 @@ function inlineFormat(text: string): string {
     .replace(/`(.+?)`/g, '<code class="bg-muted px-1 py-0.5 rounded text-[10px] font-mono text-primary">$1</code>');
 }
 
-// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function Chatbot() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -171,7 +168,7 @@ export default function Chatbot() {
 
   const userId = user?.id ?? user?.email ?? "";
 
-  // Load conversations for this specific user when they log in
+  
   useEffect(() => {
     if (!userId) return;
     const stored = loadConversations(userId);
@@ -185,7 +182,7 @@ export default function Chatbot() {
     }
   }, [userId]);
 
-  // Persist whenever conversations change
+  
   useEffect(() => {
     if (userId && conversations.length > 0) {
       saveConversations(userId, conversations);
@@ -208,7 +205,7 @@ export default function Chatbot() {
     setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 120);
   };
 
-  // Start a new conversation
+ 
   const createNewConvo = () => {
     const fresh = newConversation();
     setConversations(prev => [fresh, ...prev]);
@@ -216,7 +213,7 @@ export default function Chatbot() {
     setSidebarOpen(false);
   };
 
-  // Delete a conversation
+
   const deleteConvo = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setConversations(prev => {
@@ -231,7 +228,7 @@ export default function Chatbot() {
     });
   };
 
-  // Append a message to the active conversation
+  
   const appendMessage = (msg: Message) => {
     setConversations(prev =>
       prev.map(c => {
@@ -243,7 +240,7 @@ export default function Chatbot() {
     );
   };
 
-  // Send with streaming
+ 
   const sendMessage = async () => {
     const text = input.trim();
     if (!text || loading) return;
@@ -265,7 +262,7 @@ export default function Chatbot() {
     abortRef.current = new AbortController();
 
     try {
-      const response = await fetch("http://localhost:5000/api/chat", {
+      const response = await fetch("https://nthakaguide-backend.onrender.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: currentMessages, stream: true }),
@@ -277,7 +274,7 @@ export default function Chatbot() {
         throw new Error(data.error || `Server error ${response.status}`);
       }
 
-      // ── Streaming path ────────────────────────────────────────────────────
+      
       const contentType = response.headers.get("content-type") ?? "";
       if (contentType.includes("text/event-stream") || contentType.includes("text/plain")) {
         const reader = response.body!.getReader();
@@ -289,7 +286,7 @@ export default function Chatbot() {
           if (done) break;
 
           const chunk = decoder.decode(value, { stream: true });
-          // Handle SSE "data: ..." lines
+          
           for (const line of chunk.split("\n")) {
             if (line.startsWith("data: ")) {
               const payload = line.slice(6).trim();
@@ -304,7 +301,7 @@ export default function Chatbot() {
                 accumulated += token;
                 setStreamingContent(accumulated);
               } catch {
-                // raw text fallback
+                
                 accumulated += payload;
                 setStreamingContent(accumulated);
               }
@@ -317,7 +314,7 @@ export default function Chatbot() {
         appendMessage(finalMsg);
         setIsOffline(false);
       } else {
-        // ── Non-streaming fallback (backend doesn't support streaming) ─────
+      
         const data = await response.json();
         const reply = data.reply || "Sorry, I could not process that.";
         appendMessage({ role: "assistant", content: reply, timestamp: Date.now() });
@@ -327,7 +324,7 @@ export default function Chatbot() {
       setStreamingContent("");
       if (err.name === "AbortError") return;
 
-      // Network failure → offline fallback
+      
       const isNetwork =
         err.message?.includes("fetch") ||
         err.message?.includes("network") ||
@@ -379,7 +376,7 @@ export default function Chatbot() {
 
   return (
     <>
-      {/* Floating button */}
+     
       <AnimatePresence>
         {!open && (
           <motion.button
@@ -397,7 +394,7 @@ export default function Chatbot() {
         )}
       </AnimatePresence>
 
-      {/* Chat window */}
+     
       <AnimatePresence>
         {open && (
           <motion.div
@@ -408,7 +405,7 @@ export default function Chatbot() {
             className="fixed bottom-6 right-6 z-50 flex shadow-2xl rounded-2xl overflow-hidden"
             style={{ width: sidebarOpen ? 640 : 380, maxWidth: "calc(100vw - 1.5rem)", height: 560, maxHeight: "calc(100vh - 5rem)" }}
           >
-            {/* ── Sidebar ─────────────────────────────────────────────────── */}
+            
             <AnimatePresence>
               {sidebarOpen && (
                 <motion.div
@@ -457,9 +454,9 @@ export default function Chatbot() {
               )}
             </AnimatePresence>
 
-            {/* ── Main chat area ───────────────────────────────────────────── */}
+           
             <div className="flex flex-col flex-1 bg-card min-w-0">
-              {/* Header */}
+              
               <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-primary/5 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <button
@@ -489,7 +486,7 @@ export default function Chatbot() {
                 </div>
               </div>
 
-              {/* Messages */}
+              
               <div
                 ref={scrollRef}
                 onScroll={handleScroll}
@@ -530,7 +527,7 @@ export default function Chatbot() {
                   </motion.div>
                 ))}
 
-                {/* Streaming bubble */}
+                
                 {streamingContent && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-start">
                     <div className="h-6 w-6 flex items-center justify-center shrink-0 mt-0.5">
@@ -543,7 +540,7 @@ export default function Chatbot() {
                   </motion.div>
                 )}
 
-                {/* Typing indicator (no streaming content yet) */}
+                
                 {loading && !streamingContent && (
                   <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex gap-2 justify-start">
                     <div className="h-6 w-6 flex items-center justify-center shrink-0">
@@ -563,7 +560,7 @@ export default function Chatbot() {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Scroll to bottom button */}
+              
               <AnimatePresence>
                 {showScrollBtn && (
                   <motion.button
@@ -576,7 +573,7 @@ export default function Chatbot() {
                 )}
               </AnimatePresence>
 
-              {/* Input area */}
+              
               <div className="border-t border-border p-3 shrink-0 bg-card">
                 <div className="flex gap-2">
                   <input
