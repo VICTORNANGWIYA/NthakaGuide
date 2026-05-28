@@ -1,19 +1,4 @@
-/**
- * src/pages/admin/AdminDashboard.tsx
- *
- * Slim shell — owns only:
- *   • route guard
- *   • all useAdminFetch calls
- *   • shared filter state
- *   • dialog open/close state
- *   • KPI assembly
- *   • top bar
- *   • tab list
- *
- * Every tab panel lives in ./tabs/*.tsx
- * Every shared primitive lives in ./ui.tsx
- * Every hook/helper lives in ./hooks.ts
- */
+
 
 import { useState, useEffect } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -34,7 +19,6 @@ import { ResetPasswordDialog, ConfirmDialog } from "./dialogs";
 import { adminAction }   from "./hooks";
 import { useToast }      from "@/hooks/use-toast";
 
-// ── Tab panels ──────────────────────────────────────────────────────────────
 import { OverviewTab }  from "./tabs/OverviewTab";
 import { AnalysesTab }  from "./tabs/AnalysesTab";
 import { UsersTab }     from "./tabs/UsersTab";
@@ -44,7 +28,6 @@ import { AlertsTab }    from "./tabs/AlertsTab";
 import { LogsTab }      from "./tabs/LogsTab";
 import { ChatbotTab, RainfallTab, SettingsTab } from "./tabs/ChatbotRainfallSettingsTabs";
 
-// ── KPI spark data (static) ─────────────────────────────────────────────────
 const STATIC_SPARKS = {
   users:     [80, 110, 130, 160, 180, 200, 210, 230, 240, 260],
   districts: [20, 22, 22, 24, 26, 26, 28, 28, 28, 28],
@@ -56,7 +39,6 @@ export default function AdminDashboard() {
   const navigate  = useNavigate();
   const { toast } = useToast();
 
-  // ── Filter / search state ─────────────────────────────────────────────────
   const [searchQ,    setSearchQ]    = useState("");
   const [filterMode, setFilterMode] = useState("");
   const [filterCrop, setFilterCrop] = useState("");
@@ -64,7 +46,6 @@ export default function AdminDashboard() {
   const [dateTo,     setDateTo]     = useState("");
   const surveysApi   = useAdminFetch<any>("/admin/deletion-surveys", token);
 
-  // ── Dialog state ──────────────────────────────────────────────────────────
   const [resetTarget,   setResetTarget]   = useState<{ id: string; email: string } | null>(null);
   const [deleteTarget,  setDeleteTarget]  = useState<{ id: string; email: string } | null>(null);
   const [confirmAction, setConfirmAction] = useState<{
@@ -72,7 +53,6 @@ export default function AdminDashboard() {
     variant?: "destructive"; onConfirm: () => void;
   } | null>(null);
 
-  // Block back-button navigation out of admin
   useEffect(() => {
     window.history.pushState(null, "", window.location.href);
     const handle = () => window.history.pushState(null, "", window.location.href);
@@ -80,7 +60,6 @@ export default function AdminDashboard() {
     return () => window.removeEventListener("popstate", handle);
   }, []);
 
-  // ── Data ──────────────────────────────────────────────────────────────────
   const statsApi     = useAdminFetch<any>("/admin/stats",          token);
   const monthlyApi   = useAdminFetch<any[]>("/admin/monthly",      token);
   const analysesApi  = useAdminFetch<any>("/admin/analyses",       token);
@@ -116,7 +95,6 @@ export default function AdminDashboard() {
     { label: "API Uptime",       value: stats?.api_uptime ?? "—",                    sub: "Last 30 days",                               spark: STATIC_SPARKS.uptime,                       Icon: Globe     },
   ];
 
-  // ── Delete user helper (needs access to reload) ───────────────────────────
   const handleDeleteConfirm = async (id: string, email: string) => {
     if (!token) return;
     const { ok, data } = await adminAction(token, "DELETE", `/admin/users/${id}`);
@@ -145,7 +123,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
 
-      {/* ── Top bar ────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
         <div className="container max-w-7xl px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">

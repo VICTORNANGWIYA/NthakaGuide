@@ -23,7 +23,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { MALAWI_DISTRICTS } from "@/lib/malawi-districts";
 
-const API_URL = "http://localhost:5000";
+const API_URL = "https://nthakaguide-backend.onrender.com";
 
 /* ── Password Field ── */
 function PasswordField({

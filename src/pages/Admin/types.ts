@@ -1,5 +1,4 @@
-// src/pages/admin/types.ts
-// Shared type definitions for the Admin Dashboard
+
 
 export interface KPI {
   label: string;

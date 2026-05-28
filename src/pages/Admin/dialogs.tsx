@@ -1,5 +1,3 @@
-// src/pages/admin/dialogs.tsx
-// Modal dialogs used in the Users tab.
 
 import { useState } from "react";
 import { Button }  from "@/components/ui/button";
@@ -12,7 +10,6 @@ import {
 import { useToast }    from "@/hooks/use-toast";
 import { adminAction } from "./hooks";
 
-// ── Reset Password ────────────────────────────────────────────────────────────
 interface ResetPasswordDialogProps {
   userId:    string;
   userEmail: string;

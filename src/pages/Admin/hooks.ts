@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-export const API = "http://localhost:5000";
+export const API = "https://nthakaguide-backend.onrender.com";
 
 // ── Generic fetch hook ────────────────────────────────────────────────────────
 export function useAdminFetch<T>(path: string, token: string | null) {
